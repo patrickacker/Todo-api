@@ -1,5 +1,7 @@
 var express = require('express');
 var bodyParser = require('body-parser');
+var _ = require('underscore'); // will refactor get/post
+
 var app = express();
 var PORT = process.env.PORT || 3000;
 var todos = [];
@@ -19,13 +21,7 @@ app.get('/todos', function(req, res) {
 
 app.get('/todos/:id', function(req, res) {
   var todoId = parseInt(req.params.id, 10);
-  var matchedToDo;
-
-  todos.forEach(function(todo) {
-    if (todoId === todo.id) {
-      matchedToDo = todo;
-    }
-  });
+  var matchedToDo = _.findWhere(todos, {id: todoId})
 
   if (matchedToDo) {
     res.json(matchedToDo);
@@ -34,9 +30,16 @@ app.get('/todos/:id', function(req, res) {
   }
 });
 
-// POST /todos
 app.post('/todos', function(req, res) {
-  var body = req.body;
+  var body = _.pick(req.body, 'description', 'completed'); // Removes hacked fields - sanitized
+
+  if (!_.isBoolean(body.completed) || !_.isString(body.description) || body.description.trim().length === 0){
+    return res.status(400).send();
+  }
+
+  // set body.description to be trimmed value
+  body.description = body.description.trim(); // Remove spaces
+
   body.id = todoNextId;
   todoNextId++;
   todos.push(body);
