@@ -11,15 +11,31 @@ var todoNextId = 1;
 // access via request.body
 app.use(bodyParser.json()); // helps to setup middleware
 
+
+
 // GET homepage
 app.get('/', function(req, res) {
   res.send('ToDo api root');
 });
 
-// GET todos page
+
+
+// GET todos page /todos?completed=true
 app.get('/todos', function(req, res) {
-  res.json(todos);
+  // !!Query parameters
+  var queryParams = req.query;
+  var filteredToDos = todos;
+
+  if (queryParams.hasOwnProperty('completed') && queryParams.completed === 'true') {
+    filteredToDos = _.where(filteredToDos, {completed: true});
+  } else if (queryParams.hasOwnProperty('completed') && queryParams.completed === 'false') {
+    filteredToDos = _.where(filteredToDos, {completed: false});
+  }
+
+  res.json(filteredToDos);
 });
+
+
 
 // GET (by ID)
 app.get('/todos/:id', function(req, res) {
