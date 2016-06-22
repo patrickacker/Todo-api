@@ -11,17 +11,20 @@ var todoNextId = 1;
 // access via request.body
 app.use(bodyParser.json()); // helps to setup middleware
 
+// GET homepage
 app.get('/', function(req, res) {
   res.send('ToDo api root');
 });
 
+// GET todos page
 app.get('/todos', function(req, res) {
   res.json(todos);
 });
 
+// GET (by ID)
 app.get('/todos/:id', function(req, res) {
   var todoId = parseInt(req.params.id, 10);
-  var matchedToDo = _.findWhere(todos, {id: todoId})
+  var matchedToDo = _.findWhere(todos, {id: todoId});
 
   if (matchedToDo) {
     res.json(matchedToDo);
@@ -30,6 +33,7 @@ app.get('/todos/:id', function(req, res) {
   }
 });
 
+// POST
 app.post('/todos', function(req, res) {
   var body = _.pick(req.body, 'description', 'completed'); // Removes hacked fields - sanitized
 
@@ -44,6 +48,20 @@ app.post('/todos', function(req, res) {
   todoNextId++;
   todos.push(body);
   res.json(body);
+});
+
+// DELETE /todos/:id
+app.delete('/todos/:id', function(req, res) {
+  var todoId = parseInt(req.params.id, 10);
+  var matchedToDo = _.findWhere(todos, {id: todoId});
+
+  if (matchedToDo) {
+    // Use underscore "without" to remove value
+    todos = _.without(todos, matchedToDo);
+    res.json(matchedToDo);
+  } else {
+    res.status(404).send();
+  }
 });
 
 
