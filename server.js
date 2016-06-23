@@ -115,15 +115,32 @@ app.post('/todos', function(req, res) {
 // DELETE /todos/:id
 app.delete('/todos/:id', function(req, res) {
   var todoId = parseInt(req.params.id, 10);
-  var matchedToDo = _.findWhere(todos, {id: todoId});
 
-  if (matchedToDo) {
-    // Use underscore "without" to remove value
-    todos = _.without(todos, matchedToDo);
-    res.json(matchedToDo);
-  } else {
-    res.status(404).send();
-  }
+  db.todo.destroy({
+    where: {
+      id: todoId
+    }
+  }).then(function(rowsDeleted) {
+    if (rowsDeleted === 0) {
+      res.status(404).json({
+        error: 'No todo with id'
+      });
+    } else {
+      res.status(204).send(); // Everything went well, nothing to send back
+    }
+  }, function() {
+      res.status(500).send();
+  });
+
+  // var matchedToDo = _.findWhere(todos, {id: todoId});
+  //
+  // if (matchedToDo) {
+  //   // Use underscore "without" to remove value
+  //   todos = _.without(todos, matchedToDo);
+  //   res.json(matchedToDo);
+  // } else {
+  //   res.status(404).send();
+  // }
 });
 
 // PUT  /todos/:id
