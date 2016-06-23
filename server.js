@@ -21,23 +21,45 @@ app.get('/', function(req, res) {
 // Returns anything completed and description related to house
 app.get('/todos', function(req, res) {
   // !!Query parameters
-  var queryParams = req.query;
-  var filteredToDos = todos;
+  var query = req.query;
+  var where = {};
 
-  if (queryParams.hasOwnProperty('completed') && queryParams.completed === 'true') {
-    filteredToDos = _.where(filteredToDos, {completed: true});
-  } else if (queryParams.hasOwnProperty('completed') && queryParams.completed === 'false') {
-    filteredToDos = _.where(filteredToDos, {completed: false});
+  // set to boolean
+  if (query.hasOwnProperty('completed') && query.completed == 'true') {
+    where.completed = true;
+  } else if (query.hasOwnProperty('completed') && query.completed == 'false') {
+    where.completed = false;
   }
 
-  // Query description (also helps find upper/lowercase)
-  if (queryParams.hasOwnProperty('q') && queryParams.q.length > 0) {
-    filteredToDos = _.filter(filteredToDos, function(todo) {
-      return todo.description.toLowerCase().indexOf(queryParams.q.toLowerCase()) > -1;
-    });
+  if (query.hasOwnProperty('q') && query.q.length > 0 ) {
+    where.description = {
+      $like: '%' + query.q + '%'
+    };
   }
 
-  res.json(filteredToDos);
+  db.todo.findAll({where: where}).then(function(todos){
+    res.json(todos);
+  }, function (e) {
+    res.status(500).send();
+  });
+
+  // var queryParams = req.query;
+  // var filteredToDos = todos;
+  //
+  // if (queryParams.hasOwnProperty('completed') && queryParams.completed === 'true') {
+  //   filteredToDos = _.where(filteredToDos, {completed: true});
+  // } else if (queryParams.hasOwnProperty('completed') && queryParams.completed === 'false') {
+  //   filteredToDos = _.where(filteredToDos, {completed: false});
+  // }
+  //
+  // // Query description (also helps find upper/lowercase)
+  // if (queryParams.hasOwnProperty('q') && queryParams.q.length > 0) {
+  //   filteredToDos = _.filter(filteredToDos, function(todo) {
+  //     return todo.description.toLowerCase().indexOf(queryParams.q.toLowerCase()) > -1;
+  //   });
+  // }
+  //
+  // res.json(filteredToDos);
 });
 
 
