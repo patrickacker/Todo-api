@@ -1,6 +1,7 @@
 var express = require('express');
 var bodyParser = require('body-parser');
 var _ = require('underscore'); // will refactor get/post
+var db = require('./db.js')
 
 var app = express();
 var PORT = process.env.PORT || 3000;
@@ -11,14 +12,10 @@ var todoNextId = 1;
 // access via request.body
 app.use(bodyParser.json()); // helps to setup middleware
 
-
-
 // GET homepage
 app.get('/', function(req, res) {
   res.send('ToDo api root');
 });
-
-
 
 // GET todos page /todos?completed=true&q=house
 // Returns anything completed and description related to house
@@ -61,17 +58,24 @@ app.get('/todos/:id', function(req, res) {
 app.post('/todos', function(req, res) {
   var body = _.pick(req.body, 'description', 'completed'); // Removes hacked fields - sanitized
 
-  if (!_.isBoolean(body.completed) || !_.isString(body.description) || body.description.trim().length === 0){
-    return res.status(400).send();
-  }
+  db.todo.create(body).then(function(todo){
+    res.json(todo.toJSON());
+    //res.status(200).json
+  }).catch(function(e){
+    res.status(400).json(e);
+  });
 
-  // set body.description to be trimmed value
-  body.description = body.description.trim(); // Remove spaces
-
-  body.id = todoNextId;
-  todoNextId++;
-  todos.push(body);
-  res.json(body);
+  // if (!_.isBoolean(body.completed) || !_.isString(body.description) || body.description.trim().length === 0){
+  //   return res.status(400).send();
+  // }
+  //
+  // // set body.description to be trimmed value
+  // body.description = body.description.trim(); // Remove spaces
+  //
+  // body.id = todoNextId;
+  // todoNextId++;
+  // todos.push(body);
+  // res.json(body);
 });
 
 // DELETE /todos/:id
@@ -118,7 +122,8 @@ app.put('/todos/:id', function(req, res) {
   res.json(matchedToDo);
 });
 
-
-app.listen(PORT, function() {
-  console.log('Express listening on port ' + PORT);
+db.sequelize.sync().then(function(){
+  app.listen(PORT, function() {
+    console.log('Express listening on port ' + PORT);
+  });
 });
