@@ -33,7 +33,7 @@ app.get('/todos', function(req, res) {
     filteredToDos = _.where(filteredToDos, {completed: false});
   }
 
-  // Query description
+  // Query description (also helps find upper/lowercase)
   if (queryParams.hasOwnProperty('q') && queryParams.q.length > 0) {
     filteredToDos = _.filter(filteredToDos, function(todo) {
       return todo.description.toLowerCase().indexOf(queryParams.q.toLowerCase()) > -1;
